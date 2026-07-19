@@ -1,0 +1,44 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Build Docker image
+        run: |
+          docker build -f docker/Dockerfile.prod -t engine-server:${{ github.sha }} .
+          docker tag engine-server:${{ github.sha }} engine-server:latest
+      
+      - name: Push to registry
+        run: |
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker push engine-server:${{ github.sha }}
+          docker push engine-server:latest
+      
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl config use-context ${{ secrets.KUBECONFIG_CONTEXT }}
+          kubectl apply -f infrastructure/kubernetes/
+          kubectl rollout status deployment/engine-server
