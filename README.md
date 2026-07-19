@@ -537,3 +537,80 @@ MIT
 ---
 
 Built with ❤️ for AI Agent Engine
+
+## ☁️ Vercel Deployment
+
+### One-Click Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/amkyawdev/engine-server)
+
+### Manual Deploy
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Login to Vercel
+vercel login
+
+# Deploy to preview
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
+### Vercel Configuration
+
+The `vercel.json` file is pre-configured:
+
+```json
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "builds": [
+    {
+      "src": "dist/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/dist/index.js" },
+    { "src": "/(.*)", "dest": "/dist/index.js" }
+  ]
+}
+```
+
+### Environment Variables
+
+Set in Vercel Dashboard → Settings → Environment Variables:
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `JWT_SECRET` | Secret for JWT tokens | Yes |
+| `NODE_ENV` | Set to `production` | Yes |
+| `PORT` | Server port (default: 3000) | No |
+| `REDIS_URL` | Redis connection URL | No |
+| `VECTOR_DB_URL` | Vector database URL | No |
+
+### Vercel-Specific Features
+
+```typescript
+// Detect Vercel environment
+const isVercel = process.env.VERCEL === '1';
+const region = process.env.NOW_REGION;
+
+// Serverless function handler
+export default async function handler(req, res) {
+  // Your API logic here
+}
+```
+
+### Performance Tips
+
+- Use Edge Functions for low-latency responses
+- Configure `regions` in vercel.json for closer deployment
+- Enable static caching for public assets
+
