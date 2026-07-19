@@ -1,25 +1,42 @@
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-import rateLimit from '@fastify/rate-limit';
+import http from 'http';
+import { parse } from 'url';
 
-const app = Fastify({ logger: false });
+const html = JSON.stringify({ 
+  name: 'engine-server', 
+  version: '1.0.0', 
+  status: 'running',
+  message: 'AI Agent Engine Server'
+});
 
-async function setup() {
-  await app.register(cors, { origin: '*' });
-  await app.register(rateLimit, { max: 100, timeWindow: 60000 });
-  
-  app.get('/', async () => ({ name: 'engine-server', version: '1.0.0', status: 'running' }));
-  app.get('/api/health', async () => ({ status: 'healthy', timestamp: new Date().toISOString() }));
-  app.get('/api/tools', async () => ({ tools: [{ id: 'calculator', name: 'Calculator' }], total: 1 }));
-  app.get('/api/skills', async () => ({ skills: [], total: 0 }));
-}
+const health = JSON.stringify({ 
+  status: 'healthy', 
+  timestamp: new Date().toISOString() 
+});
 
-setup();
+const tools = JSON.stringify({ 
+  tools: [{ id: 'calculator', name: 'Calculator', description: 'Math expressions' }], 
+  total: 1 
+});
 
-const handler = async (req: any, res: any) => {
-  await app.ready();
-  const result = await app.inject({ method: req.method, url: req.url, headers: req.headers });
-  res.status(result.statusCode).header('Content-Type', 'application/json').send(result.body);
+const skills = JSON.stringify({ skills: [], total: 0 });
+
+const routes: Record<string, string> = {
+  '/': html,
+  '/api': html,
+  '/api/health': health,
+  '/api/tools': tools,
+  '/api/skills': skills,
 };
 
-export default handler;
+export default function handler(req: any, res: any) {
+  const parsedUrl = parse(req.url, true);
+  const path = parsedUrl.pathname || '/';
+  
+  const body = routes[path] || JSON.stringify({ error: 'Not Found', path });
+  const statusCode = routes[path] ? 200 : 404;
+  
+  res.statusCode = statusCode;
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.end(body);
+}
