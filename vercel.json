@@ -1,7 +1,4 @@
 {
   "version": 2,
-  "installCommand": "npm install --include=dev",
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "installCommand": "npm install --include=dev"
 }
