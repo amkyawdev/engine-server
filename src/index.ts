@@ -1,53 +1,36 @@
-// Main Entry Point
+// Main Entry Point - Vercel Serverless Compatible
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
-import websocket from '@fastify/websocket';
 
 import { config } from './shared/config/index.js';
 import { logger } from './shared/utils/logger.js';
 
-// Routes
-import { agentExecuteRoute } from './api/agent/execute/route.js';
-import { agentStreamRoute } from './api/agent/stream/route.js';
-import { agentStatusRoute } from './api/agent/status/route.js';
-import { agentCancelRoute } from './api/agent/cancel/route.js';
-import { agentHistoryRoute } from './api/agent/history/route.js';
-import { skillsRoute } from './api/skills/route.js';
-import { toolsRoute } from './api/tools/route.js';
+// Routes - Basic routes for Vercel
 import { healthRoute } from './api/health/route.js';
-import { loginRoute } from './api/auth/login/route.js';
-import { verifyRoute } from './api/auth/verify/route.js';
-import { incomingWebhookRoute } from './api/webhooks/incoming/route.js';
+import { toolsRoute } from './api/tools/route.js';
+import { skillsRoute } from './api/skills/route.js';
 
+// Create Fastify instance
 const app = Fastify({
   logger: config.logging,
 });
 
-// Plugins
+// CORS
 await app.register(cors, {
   origin: config.cors.origin,
 });
 
+// Rate Limiting
 await app.register(rateLimit, {
   max: config.rateLimit.max,
   timeWindow: config.rateLimit.timeWindow,
 });
 
-await app.register(websocket);
-
-// Routes
-app.register(agentExecuteRoute, { prefix: '/api/agent/execute' });
-app.register(agentStreamRoute, { prefix: '/api/agent/stream' });
-app.register(agentStatusRoute, { prefix: '/api/agent/status' });
-app.register(agentCancelRoute, { prefix: '/api/agent/cancel' });
-app.register(agentHistoryRoute, { prefix: '/api/agent/history' });
-app.register(skillsRoute, { prefix: '/api/skills' });
-app.register(toolsRoute, { prefix: '/api/tools' });
+// Register routes
 app.register(healthRoute, { prefix: '/api/health' });
-app.register(loginRoute, { prefix: '/api/auth/login' });
-app.register(verifyRoute, { prefix: '/api/auth/verify' });
-app.register(incomingWebhookRoute, { prefix: '/api/webhooks/incoming' });
+app.register(toolsRoute, { prefix: '/api/tools' });
+app.register(skillsRoute, { prefix: '/api/skills' });
 
 // Root route
 app.get('/', async () => {
@@ -55,23 +38,59 @@ app.get('/', async () => {
     name: 'engine-server',
     version: '1.0.0',
     status: 'running',
+    message: 'AI Agent Engine Server',
   };
 });
 
-// Start server
-const start = async () => {
+// Vercel Serverless Handler
+export default async function handler(req: Request): Promise<Response> {
   try {
-    await app.listen({
-      port: config.server.port,
-      host: config.server.host,
+    await app.ready();
+    
+    const url = new URL(req.url, 'https://vercel.app');
+    const method = req.method;
+    
+    let body: string | null = null;
+    if (method !== 'GET' && method !== 'HEAD') {
+      body = await req.text();
+    }
+    
+    // @ts-ignore - Simplified for Vercel
+    const result = await app.handle({
+      method,
+      url: url.pathname + url.search,
+      headers: Object.fromEntries(req.headers.entries()),
+      body,
     });
-    logger.info(`Server running on http://${config.server.host}:${config.server.port}`);
+    
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
-    logger.error({ error }, 'Failed to start server');
-    process.exit(1);
+    logger.error({ error }, 'Vercel handler error');
+    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
-};
+}
 
-start();
+// Local development server
+const isLocal = process.env.NODE_ENV !== 'production' && !process.env.VERCEL;
 
-export { app };
+if (isLocal) {
+  const start = async () => {
+    try {
+      await app.listen({
+        port: config.server.port,
+        host: config.server.host,
+      });
+      logger.info(`Server running on http://${config.server.host}:${config.server.port}`);
+    } catch (error) {
+      logger.error({ error }, 'Failed to start server');
+      process.exit(1);
+    }
+  };
+  start();
+}
