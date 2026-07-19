@@ -1,6 +1,0 @@
-{
-  "name": "engine-server",
-  "version": "1.0.0",
-  "description": "AI Agent Engine Server",
-  "main": "api/index.js"
-}
