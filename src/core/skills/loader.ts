@@ -48,7 +48,7 @@ export class SkillLoader {
       const trimmed = line.trim();
 
       if (trimmed.startsWith('# Skill:')) {
-        if (currentSkill.id) {
+        if (currentSkill?.id) {
           skills.push({
             ...currentSkill as Skill,
             triggers: currentTriggers.map((t) => ({
@@ -69,7 +69,9 @@ export class SkillLoader {
         };
         currentTriggers = [];
       } else if (trimmed.startsWith('Description:')) {
-        currentSkill!.description = trimmed.replace('Description:', '').trim();
+        if (currentSkill) {
+          currentSkill.description = trimmed.replace('Description:', '').trim();
+        }
       } else if (trimmed.startsWith('Triggers:')) {
         const triggers = trimmed.replace('Triggers:', '').trim();
         currentTriggers = triggers.split(',').map((t) => t.trim());

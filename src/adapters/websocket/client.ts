@@ -16,15 +16,21 @@ export interface WebSocketMessage {
   id?: string;
 }
 
+interface WebSocketLike {
+  on(event: string, handler: (data?: unknown) => void): void;
+  send(data: string): void;
+  close(): void;
+}
+
 export class WebSocketClient {
-  private connections: Map<string, WebSocket> = new Map();
+  private connections: Map<string, WebSocketLike> = new Map();
   private listeners: Map<string, Set<(data: unknown) => void>> = new Map();
 
-  addClient(id: string, socket: WebSocket): void {
+  addClient(id: string, socket: WebSocketLike): void {
     this.connections.set(id, socket);
     socket.on('message', (data) => this.handleMessage(id, data));
     socket.on('close', () => this.handleClose(id));
-    socket.on('error', (error) => this.handleError(id, error));
+    socket.on('error', (error) => this.handleError(id, error as Error));
     logger.info({ clientId: id }, 'WebSocket client connected');
   }
 
@@ -54,7 +60,7 @@ export class WebSocketClient {
   }
 
   broadcast(message: WebSocketMessage, exclude?: string[]): void {
-    for (const [id, socket] of this.connections) {
+    for (const [id] of this.connections) {
       if (exclude?.includes(id)) continue;
       this.send(id, message);
     }

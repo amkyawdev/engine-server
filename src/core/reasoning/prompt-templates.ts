@@ -3,10 +3,10 @@
 export interface PromptTemplate {
   name: string;
   template: string;
-  variables: string[];
+  variables: readonly string[];
 }
 
-export const PROMPT_TEMPLATES = {
+const templates = {
   CHAIN_OF_THOUGHT: {
     name: 'chain-of-thought',
     template: `Think through this step by step:
@@ -17,7 +17,7 @@ Context: {context}
 Think aloud about the problem, breaking it down into smaller parts.
 Consider alternatives and their implications.
 Conclude with your reasoning and answer.`,
-    variables: ['problem', 'context'],
+    variables: ['problem', 'context'] as string[],
   },
 
   TREE_OF_THOUGHT: {
@@ -34,7 +34,7 @@ For each approach:
 4. Select the best option
 
 Provide your final solution and reasoning.`,
-    variables: ['problem', 'approaches'],
+    variables: ['problem', 'approaches'] as string[],
   },
 
   STATE_MACHINE: {
@@ -53,7 +53,7 @@ Next steps:
 3. Execute and observe
 4. Reason about results
 5. Update state or finish`,
-    variables: ['currentState', 'input', 'goal', 'history'],
+    variables: ['currentState', 'input', 'goal', 'history'] as string[],
   },
 
   REFLECTION: {
@@ -71,7 +71,7 @@ What could be improved?
 {improvements}
 
 Final conclusions: {conclusions}`,
-    variables: ['initialThoughts', 'actions', 'results', 'whatWentWell', 'improvements', 'conclusions'],
+    variables: ['initialThoughts', 'actions', 'results', 'whatWentWell', 'improvements', 'conclusions'] as string[],
   },
 
   SYSTEM_PROMPT: {
@@ -87,9 +87,13 @@ Guidelines:
 
 Available context:
 {context}`,
-    variables: ['context'],
+    variables: ['context'] as string[],
   },
-} as const;
+};
+
+export const PROMPT_TEMPLATES: Record<string, PromptTemplate> = Object.fromEntries(
+  Object.values(templates).map(t => [t.name, t as PromptTemplate])
+) as Record<string, PromptTemplate>;
 
 export class PromptTemplateEngine {
   private templates: Map<string, PromptTemplate>;

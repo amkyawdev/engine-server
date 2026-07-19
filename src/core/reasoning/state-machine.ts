@@ -14,7 +14,7 @@ export type StateType =
   | 'error';
 
 export interface StateTransition {
-  from: StateType;
+  from: StateType | '*';
   to: StateType;
   condition: (context: StateContext) => boolean;
   action?: (context: StateContext) => Promise<void>;

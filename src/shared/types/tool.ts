@@ -41,7 +41,7 @@ export interface ToolReturnType {
 }
 
 export interface ToolPermission {
-  type: 'network' | 'file-system' | 'execute' | 'env';
+  type: 'network' | 'file-system' | 'execute' | 'env' | 'calculator' | 'datetime';
   level: 'none' | 'read' | 'write' | 'all';
   resources?: string[];
 }

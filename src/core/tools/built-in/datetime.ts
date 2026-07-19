@@ -35,7 +35,8 @@ export const datetimeTool: Tool = {
   permissions: [
     { type: 'datetime', level: 'all' },
   ],
-  execute: async (input: unknown, context: ToolContext): Promise<ToolResult> => {
+  execute: async (input: unknown, _context: ToolContext): Promise<ToolResult> => {
+    const startTime = Date.now();
     const { operation, value, format, amount, unit, from, to } = input as DateTimeInput;
 
     try {
@@ -87,11 +88,13 @@ export const datetimeTool: Tool = {
       return {
         success: true,
         output: result,
+        executionTime: Date.now() - startTime,
       };
     } catch (error) {
       return {
         success: false,
         error: `DateTime error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        executionTime: Date.now() - startTime,
       };
     }
   },

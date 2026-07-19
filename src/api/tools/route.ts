@@ -30,10 +30,10 @@ export async function toolsRoute(app: FastifyInstance) {
   );
 
   // List tools by category
-  app.get<{ Querystring: { category?: string } }>(
+  app.get<{ Params: { category: string } }>(
     '/category/:category',
     async (request, reply) => {
-      const { category } = request.params;
+      const category = (request.params as { category: string }).category;
       const tools = toolRegistry.listByCategory(category);
       return reply.send({ tools, total: tools.length });
     }

@@ -1,13 +1,19 @@
 // Error Handler Middleware
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { createLogger } from '../shared/utils/logger.js';
-import { AppError, ErrorCode } from '../shared/types/error.js';
-import { getStatusCode } from '../shared/config/constants.js';
+import { ErrorCode } from '../shared/types/error.js';
 
 const logger = createLogger('middleware:error-handler');
 
+interface CustomError extends Error {
+  code?: string;
+  statusCode?: number;
+  details?: Record<string, unknown>;
+  timestamp?: Date;
+}
+
 export async function errorHandlerMiddleware(
-  error: Error,
+  error: CustomError,
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
@@ -21,14 +27,14 @@ export async function errorHandlerMiddleware(
     'Request error'
   );
 
-  if (error instanceof AppError) {
+  if (error.statusCode) {
     return reply.status(error.statusCode).send({
       error: {
-        code: error.code,
+        code: error.code || 'ERROR',
         message: error.message,
         details: error.details,
       },
-      timestamp: error.timestamp.toISOString(),
+      timestamp: error.timestamp?.toISOString() || new Date().toISOString(),
     });
   }
 

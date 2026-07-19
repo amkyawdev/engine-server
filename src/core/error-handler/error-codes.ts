@@ -2,13 +2,35 @@
 import { ErrorCode, AppError } from '../../shared/types/error.js';
 import { HTTP_STATUS, ERROR_MESSAGES } from '../../shared/config/constants.js';
 
+const ERROR_MESSAGES_MAP: Record<ErrorCode, string> = {
+  [ErrorCode.INTERNAL_ERROR]: 'Internal server error',
+  [ErrorCode.VALIDATION_ERROR]: 'Validation failed',
+  [ErrorCode.AGENT_NOT_FOUND]: 'Agent not found',
+  [ErrorCode.AGENT_TIMEOUT]: 'Agent execution timed out',
+  [ErrorCode.AGENT_CANCELLED]: 'Agent execution cancelled',
+  [ErrorCode.AGENT_MAX_STEPS]: 'Maximum steps exceeded',
+  [ErrorCode.TOOL_NOT_FOUND]: 'Tool not found',
+  [ErrorCode.TOOL_EXECUTION_FAILED]: 'Tool execution failed',
+  [ErrorCode.TOOL_PERMISSION_DENIED]: 'Tool permission denied',
+  [ErrorCode.TOOL_TIMEOUT]: 'Tool execution timed out',
+  [ErrorCode.SKILL_NOT_FOUND]: 'Skill not found',
+  [ErrorCode.SKILL_LOAD_FAILED]: 'Skill load failed',
+  [ErrorCode.SKILL_EXECUTION_FAILED]: 'Skill execution failed',
+  [ErrorCode.MEMORY_NOT_FOUND]: 'Memory not found',
+  [ErrorCode.MEMORY_STORAGE_FAILED]: 'Memory storage failed',
+  [ErrorCode.UNAUTHORIZED]: 'Unauthorized access',
+  [ErrorCode.FORBIDDEN]: 'Access forbidden',
+  [ErrorCode.TOKEN_EXPIRED]: 'Token expired',
+  [ErrorCode.RATE_LIMIT_EXCEEDED]: 'Rate limit exceeded',
+};
+
 export const createAppError = (
   code: ErrorCode,
   message?: string,
   details?: Record<string, unknown>,
   cause?: Error
 ): AppError => {
-  const error = new Error(message || ERROR_MESSAGES[code]) as AppError;
+  const error = new Error(message || ERROR_MESSAGES_MAP[code]) as AppError;
   error.code = code;
   error.statusCode = getStatusCode(code);
   error.details = details;
@@ -44,5 +66,5 @@ export const getStatusCode = (code: ErrorCode): number => {
 };
 
 export const getErrorMessage = (code: ErrorCode): string => {
-  return ERROR_MESSAGES[code] || 'Unknown error';
+  return ERROR_MESSAGES_MAP[code] || 'Unknown error';
 };

@@ -26,7 +26,8 @@ export const calculatorTool: Tool = {
   permissions: [
     { type: 'calculator', level: 'all' },
   ],
-  execute: async (input: unknown, context: ToolContext): Promise<ToolResult> => {
+  execute: async (input: unknown, _context: ToolContext): Promise<ToolResult> => {
+    const startTime = Date.now();
     const { expression } = input as CalculatorInput;
 
     try {
@@ -38,11 +39,13 @@ export const calculatorTool: Tool = {
       return {
         success: true,
         output: typeof result === 'number' && !isNaN(result) ? result : parseFloat(result),
+        executionTime: Date.now() - startTime,
       };
     } catch (error) {
       return {
         success: false,
         error: `Calculation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        executionTime: Date.now() - startTime,
       };
     }
   },
