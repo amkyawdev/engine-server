@@ -6,10 +6,13 @@ on:
     tags:
       - 'v*'
 
+# Note: Configure DOCKER_USERNAME, DOCKER_PASSWORD, and KUBECONFIG_CONTEXT secrets to enable deployment
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    if: false  # Disable until secrets are configured
     
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +21,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
       
       - name: Install dependencies
         run: npm ci
