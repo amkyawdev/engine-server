@@ -5,11 +5,6 @@
   "installCommand": "npm install",
   "framework": null,
   "regions": ["iad1"],
-  "files": [
-    "dist",
-    "node_modules",
-    "package.json"
-  ],
   "builds": [
     {
       "src": "dist/index.js",
