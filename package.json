@@ -2,9 +2,5 @@
   "name": "engine-server",
   "version": "1.0.0",
   "description": "AI Agent Engine Server",
-  "main": "dist/index.js",
-  "scripts": {
-    "dev": "node dist/index.js",
-    "build": "cp api/index.js dist/index.js"
-  }
+  "main": "api/index.js"
 }
